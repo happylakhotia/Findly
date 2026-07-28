@@ -1,5 +1,6 @@
-# Agentic Job Finder and Application Assistant
-##demo video on youtube:https://youtu.be/2jT2LQv41R8
+# Job Discovery & Matching Assistant
+
+[GitHub Repository](https://github.com/6361671803/Job-Discovery-and-Matching-Assistant) · [Demo Video](https://youtu.be/2jT2LQv41R8)
 A multi-agent AI system that automates the most time-consuming parts of a job search: discovering real companies and job openings, and matching them against a candidate's resume with an explainable score. That match screen — score, job description, job details, and skill match — is the end of the pipeline; the project does not select jobs, prepare applications, or touch a real application form in any way.
 
 Built as a full-stack application: a Python/FastAPI backend orchestrating five single-responsibility agents through **CrewAI** (real `Agent`/`Task`/`Crew` objects, not a hand-rolled prompt wrapper), and a React single-page frontend guiding the user through the workflow end-to-end.
@@ -128,7 +129,7 @@ This starts the backend (`uvicorn app.main:app --port 8000`) and frontend (`vite
 
 - No automated test suite — verification during development was done manually against real, live data throughout.
 - Some sites (e.g. TCS, EPAM, Naukri) actively block automated browser access; those sources are either excluded or shipped with a documented caveat rather than a fake result.
-- Job Discovery runs sequentially per company (a parallelized version was tried and reverted after causing a real hang) — a full run against ~25 companies takes roughly 5–12 minutes.
+- Job Discovery renders companies concurrently (bounded, via Playwright's async API against one shared browser) — an earlier attempt using Playwright's sync API from a thread pool caused a real 30+ minute hang, since that API isn't thread-safe; the async rewrite avoids that. LLM extraction calls stay capped to a small concurrency (tied to how many Gemini API keys are configured — one key can be round-robined with a second `GEMINI_API_KEY_2` to roughly double the rate-limit budget), since that shared rate limit, not the browser, is the real bottleneck. A full run against ~25 companies still takes a few minutes.
 - Semantic matching requires a Gemini API key specifically; it's unavailable if only a non-Gemini provider is configured, with a documented, non-silent fallback to a 5-factor score.
 - Single-user, local application — no authentication/multi-user support, no production deployment configuration.
 - Does not select jobs, prepare applications, open any real application page, or interact with a form field in any way — the project intentionally ends at the matched-jobs results screen. Applying for a job is entirely up to the user, outside this app, using the job/application links shown on each result.
